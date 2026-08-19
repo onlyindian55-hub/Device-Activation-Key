@@ -1,6 +1,0 @@
-[
-  {"device_id":"abc123xyz", "key":"user1key"},
-  {"device_id":"def456uvw", "key":"user2key"},
-  {"device_id":"*", "key":"UNLIMITED2026"},
-  {"key":"test2"}
-]
