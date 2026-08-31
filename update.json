@@ -1,0 +1,9 @@
+{
+  "status": "online",
+  "title": "⚠️ App Under Maintenance",
+  "message": "Dear users, our app is currently under maintenance. Please update to the latest version.",
+  "update_url": "https://your-update-link.com/app.apk",
+  "force_update": true,
+  "version": "3.0.1",
+  "min_version": "3.0.0"
+}
