@@ -3,6 +3,10 @@
     "floating.lua": {
       "version": "1.130.2",
       "url": "https://raw.githubusercontent.com/onlyindian55-hub/Device-Activation-Key/main/floating.lua"
+    },
+    "init.lua": {
+      "version": "1.130.3",
+      "url": "https://raw.githubusercontent.com/onlyindian55-hub/Device-Activation-Key/main/init.lua"
     }
   }
 }
