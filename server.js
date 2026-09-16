@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '10mb' }));
 
-// 🔥 MongoDB Connection (Environment Variable থেকে নেবে)
+// 🔥 MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://brmtrm07_db_user:rahat1234321@tdrmodz.wzbvvki.mongodb.net/?appName=TDRMODZ";
 
 mongoose.connect(MONGO_URI)
