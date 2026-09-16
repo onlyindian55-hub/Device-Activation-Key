@@ -1,0 +1,23 @@
+{
+  "maintenance": {
+    "version": "",
+    "message": "",
+    "force_update": false,
+    "update_url": ""
+  },
+  "lua_version": "1.0.0",
+  "lua_files": {},
+  "update_zip_b64": "",
+  "update_zip_name": "",
+  "keys": [
+    {
+      "key": "TDR-VIP-1234",
+      "activated": false,
+      "expiry": "",
+      "validity_type": "30d",
+      "validity_hours": 720,
+      "device_limit": 1,
+      "devices": []
+    }
+  ]
+}
