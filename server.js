@@ -12,15 +12,12 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '10mb' }));
 
-// 🔥 MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI;
+// 🔥 MongoDB Connection (Environment Variable থেকে নেবে)
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://brmtrm07_db_user:rahat1234321@tdrmodz.wzbvvki.mongodb.net/?appName=TDRMODZ";
 
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-})
+mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Error:', err));
 
@@ -33,66 +30,54 @@ const DataSchema = new mongoose.Schema({
 
 const DataModel = mongoose.model('TDRData', DataSchema);
 
-// Default data
-function getDefaultData() {
-    return {
-        maintenance: {},
-        lua_version: "1.0.0",
-        lua_files: {},
-        update_zip_b64: "",
-        update_zip_name: "",
-        update_zip_time: "",
-        app_html_b64: "",
-        resellers: [],
-        keys: []
-    };
-}
-
-// 🩺 Health check (UptimeRobot এর জন্য)
-app.get('/health', (req, res) => {
-    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    res.json({ status: 'ok', database: dbStatus, timestamp: new Date().toISOString() });
-});
-
-// ============================================
-// 🔵 SHIZUKU PROJECT — /api/data (Protection ছাড়া)
-// ============================================
+// ==============================================
+// GET: ডাটা পড়া
+// ==============================================
 app.get('/api/data', async (req, res) => {
     try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(503).json({ error: "Database not connected yet. Try again in a moment." });
-        }
         let doc = await DataModel.findById('main');
         if (!doc) {
-            doc = await DataModel.create({ _id: 'main', content: getDefaultData() });
+            doc = await DataModel.create({
+                _id: 'main',
+                content: {
+                    maintenance: {},
+                    lua_version: "1.0.0",
+                    lua_files: {},
+                    update_zip_b64: "",
+                    update_zip_name: "",
+                    update_zip_time: "",
+                    app_html_b64: "",
+                    resellers: [],
+                    keys: []
+                }
+            });
         }
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(doc.content));
     } catch (e) {
-        console.error('GET /api/data Error:', e);
+        console.error('GET Error:', e);
         res.status(500).json({ error: "Server error: " + e.message });
     }
 });
 
+// ==============================================
+// POST: ডাটা সেভ করা
+// ==============================================
 app.post('/api/data', async (req, res) => {
     try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(503).json({ success: false, error: "Database not connected yet." });
-        }
+        const newData = req.body;
         await DataModel.findByIdAndUpdate(
             'main',
-            { content: req.body, updatedAt: new Date() },
+            { content: newData, updatedAt: new Date() },
             { upsert: true, new: true }
         );
-        res.json({ success: true });
+        res.json({ success: true, message: "Data saved to MongoDB" });
     } catch (e) {
-        console.error('POST /api/data Error:', e);
-        res.status(400).json({ success: false, error: e.message });
+        console.error('POST Error:', e);
+        res.status(400).json({ success: false, error: "Invalid data: " + e.message });
     }
 });
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔗 Shizuku API: /api/data`);
-    console.log(`🩺 Health: /health`);
 });
