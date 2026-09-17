@@ -15,9 +15,9 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
 
-// 🔒 API Key যাচাই (মূল নিরাপত্তা এখানে)
+// 🔒 API Key যাচাই
 function verifyApiKey(req, res, next) {
     const providedKey = req.headers['x-api-key'];
     if (!providedKey || providedKey !== API_KEY) {
@@ -35,45 +35,44 @@ mongoose.connect(MONGO_URI)
 
 // 🔥 Schema
 const DataSchema = new mongoose.Schema({
-    _id: { type: String, default: 'main' },
+    _id: { type: String },
     content: { type: Object, default: {} },
     updatedAt: { type: Date, default: Date.now }
 }, { collection: 'tdr_data' });
 
 const DataModel = mongoose.model('TDRData', DataSchema);
 
-// ==============================================
-// GET: ডাটা পড়া (API Key ছাড়া ব্লক)
-// ==============================================
+// Default data
+function getDefaultData() {
+    return {
+        maintenance: {},
+        lua_version: "1.0.0",
+        lua_files: {},
+        update_zip_b64: "",
+        update_zip_name: "",
+        update_zip_time: "",
+        app_html_b64: "",
+        resellers: [],
+        keys: []
+    };
+}
+
+// ============================================
+// 🔵 SHIZUKU PROJECT (id: 'main')
+// ============================================
 app.get('/api/data', verifyApiKey, async (req, res) => {
     try {
         let doc = await DataModel.findById('main');
         if (!doc) {
-            doc = await DataModel.create({
-                _id: 'main',
-                content: {
-                    maintenance: {},
-                    lua_version: "1.0.0",
-                    lua_files: {},
-                    update_zip_b64: "",
-                    update_zip_name: "",
-                    update_zip_time: "",
-                    app_html_b64: "",
-                    resellers: [],
-                    keys: []
-                }
-            });
+            doc = await DataModel.create({ _id: 'main', content: getDefaultData() });
         }
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(doc.content));
     } catch (e) {
-        res.status(500).json({ error: "Server error" });
+        res.status(500).json({ error: "Server error: " + e.message });
     }
 });
 
-// ==============================================
-// POST: ডাটা সেভ (API Key ছাড়া ব্লক)
-// ==============================================
 app.post('/api/data', verifyApiKey, async (req, res) => {
     try {
         await DataModel.findByIdAndUpdate(
@@ -83,13 +82,39 @@ app.post('/api/data', verifyApiKey, async (req, res) => {
         );
         res.json({ success: true });
     } catch (e) {
-        res.status(400).json({ success: false, error: "Invalid data" });
+        res.status(400).json({ success: false, error: e.message });
     }
 });
 
-// ==============================================
-// Server Start
-// ==============================================
+// ============================================
+// 🟢 ROOT PROJECT (id: 'root')
+// ============================================
+app.get('/api/root-data', verifyApiKey, async (req, res) => {
+    try {
+        let doc = await DataModel.findById('root');
+        if (!doc) {
+            doc = await DataModel.create({ _id: 'root', content: getDefaultData() });
+        }
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(doc.content));
+    } catch (e) {
+        res.status(500).json({ error: "Server error: " + e.message });
+    }
+});
+
+app.post('/api/root-data', verifyApiKey, async (req, res) => {
+    try {
+        await DataModel.findByIdAndUpdate(
+            'root',
+            { content: req.body, updatedAt: new Date() },
+            { upsert: true, new: true }
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(400).json({ success: false, error: e.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
