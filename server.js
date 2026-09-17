@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🔒 API Key (Render Environment Variable থেকে আসবে)
+// 🔒 API Key
 const API_KEY = process.env.API_KEY || "TdrModz@2026#SecretKey!Xyz";
 
 // 🔥 CORS হেডার
@@ -29,13 +29,16 @@ function verifyApiKey(req, res, next) {
 // 🔥 MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGO_URI)
+mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
+})
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Error:', err));
 
 // 🔥 Schema
 const DataSchema = new mongoose.Schema({
-    _id: { type: String },
+    _id: { type: String, default: 'main' },
     content: { type: Object, default: {} },
     updatedAt: { type: Date, default: Date.now }
 }, { collection: 'tdr_data' });
@@ -57,11 +60,20 @@ function getDefaultData() {
     };
 }
 
+// 🩺 Health check (UptimeRobot এর জন্য)
+app.get('/health', (req, res) => {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    res.json({ status: 'ok', database: dbStatus, timestamp: new Date().toISOString() });
+});
+
 // ============================================
-// 🔵 SHIZUKU PROJECT (id: 'main')
+// 🔵 SHIZUKU PROJECT — /api/data
 // ============================================
 app.get('/api/data', verifyApiKey, async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(503).json({ error: "Database not connected yet. Try again in a moment." });
+        }
         let doc = await DataModel.findById('main');
         if (!doc) {
             doc = await DataModel.create({ _id: 'main', content: getDefaultData() });
@@ -69,12 +81,16 @@ app.get('/api/data', verifyApiKey, async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(doc.content));
     } catch (e) {
+        console.error('GET /api/data Error:', e);
         res.status(500).json({ error: "Server error: " + e.message });
     }
 });
 
 app.post('/api/data', verifyApiKey, async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(503).json({ success: false, error: "Database not connected yet." });
+        }
         await DataModel.findByIdAndUpdate(
             'main',
             { content: req.body, updatedAt: new Date() },
@@ -82,39 +98,13 @@ app.post('/api/data', verifyApiKey, async (req, res) => {
         );
         res.json({ success: true });
     } catch (e) {
-        res.status(400).json({ success: false, error: e.message });
-    }
-});
-
-// ============================================
-// 🟢 ROOT PROJECT (id: 'root')
-// ============================================
-app.get('/api/root-data', verifyApiKey, async (req, res) => {
-    try {
-        let doc = await DataModel.findById('root');
-        if (!doc) {
-            doc = await DataModel.create({ _id: 'root', content: getDefaultData() });
-        }
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(doc.content));
-    } catch (e) {
-        res.status(500).json({ error: "Server error: " + e.message });
-    }
-});
-
-app.post('/api/root-data', verifyApiKey, async (req, res) => {
-    try {
-        await DataModel.findByIdAndUpdate(
-            'root',
-            { content: req.body, updatedAt: new Date() },
-            { upsert: true, new: true }
-        );
-        res.json({ success: true });
-    } catch (e) {
+        console.error('POST /api/data Error:', e);
         res.status(400).json({ success: false, error: e.message });
     }
 });
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🔗 Shizuku API: /api/data`);
+    console.log(`🩺 Health: /health`);
 });
