@@ -1,32 +1,17 @@
 {
-  "app_name": "TD R Modz",
+  "app_name": "THE LION CHEATS",
   "version": "1.0",
-  "min_version": "1.0",
   "maintenance": false,
-  "maintenance_msg": "Server under maintenance. Try again later.",
-  "force_update": false,
-  "update_url": "",
+  "maintenance_msg": "Server maintenance",
   "keys": {
-    "TDRMODZ-ABCD-1234-EFGH": {
-      "status": "active",
-      "devices": [],
-      "max_devices": 2,
-      "expiry": "lifetime",
-      "note": "VIP user"
-    },
-    "TDRMODZ-DEMO-TEST-0001": {
+    "LION-DEMO-TEST-0001": {
+      "username": "demo",
+      "password": "202cb962ac59075b964b07152d234b70",
       "status": "active",
       "devices": [],
       "max_devices": 1,
       "expiry": "lifetime",
       "note": "Demo key"
-    },
-    "TDRMODZ-EXPIRED-XXXX": {
-      "status": "expired",
-      "devices": [],
-      "max_devices": 1,
-      "expiry": "1704067200000",
-      "note": "Expired key example"
     }
   }
 }
