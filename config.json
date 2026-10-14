@@ -1,0 +1,14 @@
+{
+  "maintenance": {
+    "enabled": false,
+    "message": "App is under maintenance. Please try again later.",
+    "update_url": "https://t.me/tdrmodzofc2"
+  },
+  "app_version": {
+    "min_version": "root-10",
+    "latest_version": "root-10",
+    "force_update": false
+  },
+  "lua_version": "1.0.0",
+  "update_zip_name": "engine3.zip"
+}
